@@ -10,9 +10,9 @@ Movie Explorer is a modern React web application that allows users to discover t
 - Infinite Scroll: Automatic pagination powered by IntersectionObserver as the user scrolls down the results grid.
 - Lazy Loaded Images and Routes: Smooth asset delivery with skeleton placeholders and route code splitting using React.lazy and Suspense.
 - Movie Details: Comprehensive film view including release year, runtime, ratings, genres, overview, cast list, and embedded YouTube trailers.
-- Favorites Management: Save and remove favorite movies with persistent storage in browser local storage.
+- Favorites Management: Save and remove favorite movies with persistent storage in browser local storage, isolated per logged-in user.
 - Light and Dark Theme: Cinematic dark-first design aesthetic with support for light mode, persisted across sessions.
-- Demo Authentication: Client-side login flow with input validation and route protection.
+- Demo Authentication: User sign-in interface with validation. Movie discovery, searching, details, and trailers are freely accessible to all visitors, while Favorites access and saving require logging in.
 
 ## Tech Stack
 
