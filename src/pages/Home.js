@@ -16,11 +16,24 @@ import useInfiniteScroll from '../hooks/useInfiniteScroll';
 import { getTrending, searchMovies, getGenres } from '../api/movieService';
 import { getImageUrl, truncateText, deduplicateMovies } from '../utils/helpers';
 import { SEARCH_DEBOUNCE_MS, YOUTUBE_NOCOOKIE_BASE } from '../utils/constants';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Home = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { lastSearch, setLastSearch } = useMovieContext();
+
+  useEffect(() => {
+    if (location.hash) {
+      const elementId = location.hash.replace('#', '');
+      const element = document.getElementById(elementId);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    }
+  }, [location.hash]);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState(lastSearch || '');
@@ -274,17 +287,21 @@ const Home = () => {
 
         {/* Trending horizontal row (only when not searching) */}
         {!debouncedQuery && (
-          <MovieRow
-            title="Trending This Week"
-            movies={trendingMovies}
-            loading={trendingLoading}
-          />
+          <Box id="trending-section">
+            <MovieRow
+              title="Trending This Week"
+              movies={trendingMovies}
+              loading={trendingLoading}
+            />
+          </Box>
         )}
 
         {/* Section heading */}
-        <Typography variant="h4" sx={{ mb: 2, fontWeight: 600 }}>
-          {debouncedQuery ? `Results for "${debouncedQuery}"` : 'Popular Movies'}
-        </Typography>
+        <Box id="popular-section" sx={{ scrollMarginTop: '80px' }}>
+          <Typography variant="h4" sx={{ mb: 2, fontWeight: 600 }}>
+            {debouncedQuery ? `Results for "${debouncedQuery}"` : 'Popular Movies'}
+          </Typography>
+        </Box>
 
         {/* Movie grid with infinite scroll */}
         <MovieGrid
