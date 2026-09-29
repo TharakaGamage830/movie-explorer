@@ -12,12 +12,14 @@ const SearchBar = ({ value, onChange }) => (
     value={value}
     onChange={(e) => onChange(e.target.value)}
     aria-label="Search for movies"
-    InputProps={{
-      startAdornment: (
-        <InputAdornment position="start">
-          <SearchOutlinedIcon color="action" />
-        </InputAdornment>
-      ),
+    slotProps={{
+      input: {
+        startAdornment: (
+          <InputAdornment position="start">
+            <SearchOutlinedIcon color="action" />
+          </InputAdornment>
+        ),
+      },
     }}
     sx={{
       maxWidth: 600,
