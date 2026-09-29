@@ -107,7 +107,6 @@ const Navbar = () => {
             to="/favorites"
             sx={navLinkStyle(location.pathname === '/favorites')}
           >
-            <FavoriteBorderOutlinedIcon sx={{ fontSize: 18, color: 'inherit' }} />
             Favorites
           </Link>
 
