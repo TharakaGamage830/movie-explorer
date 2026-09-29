@@ -8,6 +8,22 @@ export const getTrending = async (page = 1, { signal } = {}) => {
   return response.data;
 };
 
+export const getPopular = async (page = 1, { signal } = {}) => {
+  const response = await tmdbApi.get('/movie/popular', {
+    params: { page },
+    signal,
+  });
+  return response.data;
+};
+
+export const getNowPlaying = async (page = 1, { signal } = {}) => {
+  const response = await tmdbApi.get('/movie/now_playing', {
+    params: { page },
+    signal,
+  });
+  return response.data;
+};
+
 export const searchMovies = async (query, page = 1, { signal } = {}) => {
   const response = await tmdbApi.get('/search/movie', {
     params: { query, page },

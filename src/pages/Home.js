@@ -3,23 +3,25 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
-import PlayArrowOutlinedIcon from '@mui/icons-material/PlayArrowOutlined';
 import SearchBar from '../components/SearchBar';
 import GenreChips from '../components/GenreChips';
+import FilterBar from '../components/FilterBar';
 import MovieRow from '../components/MovieRow';
 import MovieGrid from '../components/MovieGrid';
+import HeroSlideshow from '../components/HeroSlideshow';
 import { useMovieContext } from '../context/MovieContext';
 import useDebounce from '../hooks/useDebounce';
 import useInfiniteScroll from '../hooks/useInfiniteScroll';
-import { getTrending, searchMovies, getGenres } from '../api/movieService';
-import { getImageUrl, truncateText, deduplicateMovies } from '../utils/helpers';
-import { SEARCH_DEBOUNCE_MS, YOUTUBE_NOCOOKIE_BASE } from '../utils/constants';
-import { useNavigate, useLocation } from 'react-router-dom';
+import useStickySearch from '../hooks/useStickySearch';
+import { getTrending, getPopular, getNowPlaying, searchMovies, getGenres } from '../api/movieService';
+import { deduplicateMovies } from '../utils/helpers';
+import { SEARCH_DEBOUNCE_MS } from '../utils/constants';
+import { useLocation } from 'react-router-dom';
+
+const EMPTY_FILTERS = { genre: '', year: '', rating: '' };
 
 const Home = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const { lastSearch, setLastSearch } = useMovieContext();
 
@@ -39,16 +41,28 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState(lastSearch || '');
   const debouncedQuery = useDebounce(searchQuery, SEARCH_DEBOUNCE_MS);
 
+  // Sticky search - attaches Intersection Observer to the search box ref
+  const searchBoxRef = useStickySearch(searchQuery, setSearchQuery);
+
+  // Filter state
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+
+  // Most Recent Movies for the Hero Slideshow
+  const [recentHeroMovies, setRecentHeroMovies] = useState([]);
+
   // Trending data
   const [trendingMovies, setTrendingMovies] = useState([]);
   const [trendingLoading, setTrendingLoading] = useState(true);
-  const [heroMovie, setHeroMovie] = useState(null);
+
+  // Popular data
+  const [popularMovies, setPopularMovies] = useState([]);
+  const [popularLoading, setPopularLoading] = useState(true);
 
   // Genre data
   const [genres, setGenres] = useState([]);
   const [selectedGenre, setSelectedGenre] = useState(null);
 
-  // Movie grid (search results or trending grid)
+  // Movie grid (search results or now playing grid)
   const [movies, setMovies] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -56,14 +70,30 @@ const Home = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
 
-  // Trailer state (lazy loaded on click)
-  const [showTrailer, setShowTrailer] = useState(false);
-
   // AbortController ref for cancelling stale requests
   const abortControllerRef = useRef(null);
 
   /**
-   * Fetch trending movies for the hero and the horizontal row.
+   * Fetch top 5 most recent movies for the hero auto-play slideshow.
+   */
+  useEffect(() => {
+    let mounted = true;
+    const fetchRecentHero = async () => {
+      try {
+        const data = await getNowPlaying(1);
+        if (mounted && data.results) {
+          setRecentHeroMovies(data.results.slice(0, 5));
+        }
+      } catch {
+        if (mounted) setRecentHeroMovies([]);
+      }
+    };
+    fetchRecentHero();
+    return () => { mounted = false; };
+  }, []);
+
+  /**
+   * Fetch trending movies for the horizontal row.
    */
   useEffect(() => {
     let mounted = true;
@@ -73,18 +103,32 @@ const Home = () => {
         const data = await getTrending(1);
         if (mounted) {
           setTrendingMovies(data.results || []);
-          if (data.results && data.results.length > 0) {
-            setHeroMovie(data.results[0]);
-          }
         }
       } catch (err) {
-        // Non-critical: trending row just stays empty
         if (mounted) setTrendingMovies([]);
       } finally {
         if (mounted) setTrendingLoading(false);
       }
     };
     fetchTrending();
+    return () => { mounted = false; };
+  }, []);
+
+  // Fetch popular movies for the horizontal row
+  useEffect(() => {
+    let mounted = true;
+    const fetchPopular = async () => {
+      setPopularLoading(true);
+      try {
+        const data = await getPopular(1);
+        if (mounted) setPopularMovies(data.results || []);
+      } catch {
+        if (mounted) setPopularMovies([]);
+      } finally {
+        if (mounted) setPopularLoading(false);
+      }
+    };
+    fetchPopular();
     return () => { mounted = false; };
   }, []);
 
@@ -106,7 +150,7 @@ const Home = () => {
   }, []);
 
   /**
-   * Fetch movies: either search results or trending, depending on query.
+   * Fetch movies: either search results or now playing, depending on query.
    * Cancels any in-flight request when the query changes.
    */
   const fetchMovies = useCallback(
@@ -128,7 +172,7 @@ const Home = () => {
       try {
         const data = query
           ? await searchMovies(query, pageNum, { signal: controller.signal })
-          : await getTrending(pageNum, { signal: controller.signal });
+          : await getNowPlaying(pageNum, { signal: controller.signal });
 
         if (!controller.signal.aborted) {
           if (append) {
@@ -161,6 +205,7 @@ const Home = () => {
     setLastSearch(debouncedQuery);
     setPage(1);
     setSelectedGenre(null);
+    setFilters(EMPTY_FILTERS);
     fetchMovies(debouncedQuery, 1, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedQuery]);
@@ -179,11 +224,33 @@ const Home = () => {
   });
 
   /**
-   * Filter displayed movies by selected genre (client-side filter).
+   * Apply all filters (genre chip + filter bar) client-side.
    */
-  const displayedMovies = selectedGenre
-    ? movies.filter((m) => m.genre_ids && m.genre_ids.includes(selectedGenre))
-    : movies;
+  const displayedMovies = movies.filter((m) => {
+    // Genre chip filter
+    if (selectedGenre && !(m.genre_ids && m.genre_ids.includes(selectedGenre))) {
+      return false;
+    }
+    // Filter bar: genre
+    if (filters.genre && !(m.genre_ids && m.genre_ids.includes(filters.genre))) {
+      return false;
+    }
+    // Filter bar: year
+    if (filters.year) {
+      const movieYear = m.release_date ? parseInt(m.release_date.split('-')[0], 10) : null;
+      if (movieYear !== filters.year) return false;
+    }
+    // Filter bar: min rating
+    if (filters.rating && (m.vote_average || 0) < filters.rating) {
+      return false;
+    }
+    return true;
+  });
+
+  const handleClearFilters = () => {
+    setFilters(EMPTY_FILTERS);
+    setSelectedGenre(null);
+  };
 
   /** Retry the current fetch */
   const handleRetry = () => {
@@ -192,88 +259,61 @@ const Home = () => {
 
   return (
     <Box component="main">
-      {/* Hero Banner */}
-      {heroMovie && !debouncedQuery && (
-        <Box
-          sx={{
-            position: 'relative',
-            width: '100%',
-            minHeight: { xs: 400, md: 520 },
-            backgroundImage: `url(${getImageUrl(heroMovie.backdrop_path, 'hero')})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center top',
-            display: 'flex',
-            alignItems: 'flex-end',
-          }}
-        >
-          {/* Gradient fade to background */}
-          <Box
-            sx={{
-              position: 'absolute',
-              inset: 0,
-              background:
-                'linear-gradient(to top, var(--hero-bg) 0%, transparent 60%)',
-              '--hero-bg': (theme) => theme.palette.background.default,
-            }}
-          />
-          <Container maxWidth="lg" sx={{ position: 'relative', pb: 6, pt: 12 }}>
-            <Typography
-              variant="h1"
-              component="h1"
-              sx={{
-                mb: 1,
-                maxWidth: 600,
-                fontSize: { xs: '1.75rem', sm: '2.25rem', md: '2.75rem' },
-              }}
-            >
-              {heroMovie.title}
-            </Typography>
-            <Typography
-              variant="body1"
-              color="text.secondary"
-              sx={{ mb: 3, maxWidth: 500 }}
-            >
-              {truncateText(heroMovie.overview, 180)}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<PlayArrowOutlinedIcon />}
-                onClick={() => setShowTrailer(true)}
-                id="hero-watch-trailer-btn"
-              >
-                Watch Trailer
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={() => navigate(`/movie/${heroMovie.id}`)}
-                sx={{
-                  borderColor: 'custom.border',
-                  color: 'text.primary',
-                  '&:hover': { borderColor: 'text.primary' },
-                }}
-                id="hero-more-info-btn"
-              >
-                More Info
-              </Button>
-            </Box>
-
-            {/* Lazy-loaded trailer embed (only rendered on user click) */}
-            {showTrailer && heroMovie.id && (
-              <Box sx={{ mt: 3, maxWidth: 640, aspectRatio: '16 / 9' }}>
-                <TrailerEmbed movieId={heroMovie.id} />
-              </Box>
-            )}
-          </Container>
-        </Box>
+      {/* Hero Slideshow showing Most Recent 5 Movies */}
+      {!debouncedQuery && recentHeroMovies.length > 0 && (
+        <HeroSlideshow movies={recentHeroMovies} badgeText="Most Recent" />
       )}
 
       {/* Main content */}
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        {/* Search bar */}
-        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-          <SearchBar value={searchQuery} onChange={setSearchQuery} />
+        {/* Trending horizontal row (only when not searching) */}
+        {!debouncedQuery && (
+          <Box id="trending-section">
+            <MovieRow
+              title="Trending This Week"
+              movies={trendingMovies}
+              loading={trendingLoading}
+              seeAllLink="/trending"
+            />
+          </Box>
+        )}
+
+        {/* Popular horizontal row (only when not searching) */}
+        {!debouncedQuery && (
+          <Box id="popular-section" sx={{ scrollMarginTop: '80px', mb: 3 }}>
+            <MovieRow
+              title="Popular Movies"
+              movies={popularMovies}
+              loading={popularLoading}
+              seeAllLink="/popular"
+            />
+          </Box>
+        )}
+
+        {/* Filter bar on left & Search bar on right on same line (observed for sticky nav search) */}
+        <Box
+          ref={searchBoxRef}
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: { xs: 'stretch', md: 'center' },
+            justifyContent: 'space-between',
+            gap: 2,
+            mb: 2,
+            mt: !debouncedQuery ? 2 : 0,
+          }}
+        >
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <FilterBar
+              genres={genres}
+              filters={filters}
+              onFilterChange={setFilters}
+              onClear={handleClearFilters}
+            />
+          </Box>
+          <Box sx={{ width: { xs: '100%', md: 300, lg: 340 }, flexShrink: 0 }}>
+            <SearchBar value={searchQuery} onChange={setSearchQuery} />
+          </Box>
         </Box>
 
         {/* Genre chips */}
@@ -285,23 +325,10 @@ const Home = () => {
           />
         </Box>
 
-        {/* Trending horizontal row (only when not searching) */}
-        {!debouncedQuery && (
-          <Box id="trending-section">
-            <MovieRow
-              title="Trending This Week"
-              movies={trendingMovies}
-              loading={trendingLoading}
-            />
-          </Box>
-        )}
-
-        {/* Section heading */}
-        <Box id="popular-section" sx={{ scrollMarginTop: '80px' }}>
-          <Typography variant="h4" sx={{ mb: 2, fontWeight: 600 }}>
-            {debouncedQuery ? `Results for "${debouncedQuery}"` : 'Popular Movies'}
-          </Typography>
-        </Box>
+        {/* Section heading for grid */}
+        <Typography variant="h4" sx={{ mb: 2, fontWeight: 600 }}>
+          {debouncedQuery ? `Results for "${debouncedQuery}"` : 'Most Recent Movies'}
+        </Typography>
 
         {/* Movie grid with infinite scroll */}
         <MovieGrid
@@ -316,63 +343,6 @@ const Home = () => {
         />
       </Container>
     </Box>
-  );
-};
-
-// Loads and embeds YouTube trailer on demand
-const TrailerEmbed = ({ movieId }) => {
-  const [trailerKey, setTrailerKey] = useState(null);
-  const [trailerLoading, setTrailerLoading] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-    const fetchTrailer = async () => {
-      try {
-        // Import dynamically to avoid circular deps
-        const { getMovieDetails } = await import('../api/movieService');
-        const { findTrailer } = await import('../utils/helpers');
-        const data = await getMovieDetails(movieId);
-        const trailer = findTrailer(data.videos?.results || []);
-        if (mounted && trailer) {
-          setTrailerKey(trailer.key);
-        }
-      } catch {
-        // Trailer is not available - non-critical
-      } finally {
-        if (mounted) setTrailerLoading(false);
-      }
-    };
-    fetchTrailer();
-    return () => { mounted = false; };
-  }, [movieId]);
-
-  if (trailerLoading) {
-    return (
-      <Typography variant="body2" color="text.secondary">
-        Loading trailer...
-      </Typography>
-    );
-  }
-
-  if (!trailerKey) {
-    return (
-      <Typography variant="body2" color="text.secondary">
-        Trailer not available.
-      </Typography>
-    );
-  }
-
-  return (
-    <iframe
-      width="100%"
-      height="100%"
-      src={`${YOUTUBE_NOCOOKIE_BASE}/${trailerKey}`}
-      title="Movie Trailer"
-      frameBorder="0"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      allowFullScreen
-      style={{ borderRadius: 8 }}
-    />
   );
 };
 

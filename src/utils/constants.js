@@ -8,10 +8,10 @@ export const IMAGE_SIZES = {
 };
 
 // Set to false to use the manual Load More button instead of infinite scroll
-export const INFINITE_SCROLL = true;
+export const INFINITE_SCROLL = false;
 
 export const SEARCH_DEBOUNCE_MS = 400;
-export const SKELETON_COUNT = 12;
+export const SKELETON_COUNT = 10;
 
 export const STORAGE_KEYS = {
   theme: 'movie-explorer-theme',

@@ -47,19 +47,41 @@ const MovieCard = React.memo(({ movie }) => {
         }
       }}
       sx={{
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
         cursor: 'pointer',
         transition: 'transform 200ms ease',
         '&:hover': {
           transform: 'scale(1.04)',
+          '& .movie-card-poster': {
+            borderColor: 'primary.main',
+            boxShadow: '0 4px 18px rgba(229, 9, 20, 0.45)',
+          },
         },
       }}
     >
-      <Box sx={{ position: 'relative' }}>
+      {/* Poster container with strictly enforced 2:3 ratio */}
+      <Box
+        className="movie-card-poster"
+        sx={{
+          position: 'relative',
+          width: '100%',
+          aspectRatio: '2 / 3',
+          borderRadius: '8px',
+          overflow: 'hidden',
+          backgroundColor: 'custom.raisedSurface',
+          border: '2px solid transparent',
+          transition: 'border-color 200ms ease, box-shadow 200ms ease',
+          boxSizing: 'border-box',
+        }}
+      >
         <LazyImage
           src={getImageUrl(movie.poster_path, 'card')}
           alt={`${movie.title} poster`}
           aspectRatio="2 / 3"
           borderRadius={8}
+          sx={{ width: '100%', height: '100%' }}
         />
 
         <Box
@@ -70,10 +92,11 @@ const MovieCard = React.memo(({ movie }) => {
             display: 'flex',
             alignItems: 'center',
             gap: 0.5,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
             borderRadius: '4px',
             px: 0.75,
             py: 0.25,
+            zIndex: 1,
           }}
         >
           <StarOutlinedIcon sx={{ fontSize: 14, color: 'secondary.main' }} />
@@ -91,9 +114,10 @@ const MovieCard = React.memo(({ movie }) => {
             top: 4,
             right: 4,
             color: favorite ? 'primary.main' : 'rgba(255,255,255,0.7)',
-            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            backgroundColor: 'rgba(0, 0, 0, 0.45)',
+            zIndex: 1,
             '&:hover': {
-              backgroundColor: 'rgba(0, 0, 0, 0.6)',
+              backgroundColor: 'rgba(0, 0, 0, 0.65)',
             },
           }}
         >
@@ -105,6 +129,7 @@ const MovieCard = React.memo(({ movie }) => {
         </IconButton>
       </Box>
 
+      {/* Uniform title and release year */}
       <Typography
         variant="body2"
         sx={{
@@ -112,12 +137,20 @@ const MovieCard = React.memo(({ movie }) => {
           fontWeight: 600,
           overflow: 'hidden',
           textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          display: '-webkit-box',
+          WebkitLineClamp: 1,
+          WebkitBoxOrient: 'vertical',
+          lineHeight: 1.35,
+          minHeight: '1.35em',
         }}
       >
         {movie.title}
       </Typography>
-      <Typography variant="caption" color="text.secondary">
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ display: 'block', minHeight: '1.4em', mt: 0.25 }}
+      >
         {getYear(movie.release_date)}
       </Typography>
     </Box>

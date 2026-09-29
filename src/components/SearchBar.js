@@ -3,10 +3,11 @@ import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 
-const SearchBar = ({ value, onChange }) => (
+const SearchBar = ({ value, onChange, size = 'small' }) => (
   <TextField
     id="movie-search-input"
     fullWidth
+    size={size}
     variant="outlined"
     placeholder="Search for movies..."
     value={value}
@@ -16,7 +17,7 @@ const SearchBar = ({ value, onChange }) => (
       input: {
         startAdornment: (
           <InputAdornment position="start">
-            <SearchOutlinedIcon color="action" />
+            <SearchOutlinedIcon color="action" fontSize="small" />
           </InputAdornment>
         ),
       },

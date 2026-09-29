@@ -117,14 +117,92 @@ const MovieDetails = () => {
             gap: 4,
           }}
         >
-          {/* Poster */}
-          <Box sx={{ flexShrink: 0, width: { xs: 200, md: 300 }, mx: { xs: 'auto', md: 0 } }}>
-            <LazyImage
-              src={getImageUrl(movie.poster_path, 'detail')}
-              alt={`${movie.title} poster`}
-              aspectRatio="2 / 3"
-              borderRadius={8}
-            />
+          {/* Poster & Left Side Actions */}
+          <Box
+            sx={{
+              flexShrink: 0,
+              width: { xs: 220, sm: 260, md: 300 },
+              mx: { xs: 'auto', md: 0 },
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <Box
+              sx={{
+                width: '100%',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                boxShadow: '0 8px 30px rgba(0, 0, 0, 0.5)',
+              }}
+            >
+              <LazyImage
+                src={getImageUrl(movie.poster_path, 'detail')}
+                alt={`${movie.title} poster`}
+                aspectRatio="2 / 3"
+                borderRadius={8}
+              />
+            </Box>
+
+            {/* Directed by */}
+            {director && (
+              <Box sx={{ mt: 2, textAlign: { xs: 'center', md: 'left' } }}>
+                <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5, display: 'block' }}>
+                  Directed by
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  {director.name}
+                </Typography>
+              </Box>
+            )}
+
+            {/* Action buttons placed at bottom of movie image side */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 2, width: '100%' }}>
+              {trailer && (
+                <Button
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  startIcon={<PlayArrowOutlinedIcon />}
+                  onClick={() => setShowTrailer(!showTrailer)}
+                  id="detail-watch-trailer-btn"
+                  sx={{ py: 1.2, fontWeight: 600 }}
+                >
+                  {showTrailer ? 'Hide Trailer' : 'Watch Trailer'}
+                </Button>
+              )}
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => {
+                  if (!isLoggedIn) {
+                    navigate('/login');
+                    return;
+                  }
+                  if (favorite) {
+                    removeFavorite(movie.id);
+                  } else {
+                    addFavorite(movie);
+                  }
+                }}
+                startIcon={
+                  favorite ? (
+                    <FavoriteIcon sx={{ color: 'primary.main' }} />
+                  ) : (
+                    <FavoriteBorderOutlinedIcon />
+                  )
+                }
+                sx={{
+                  py: 1.2,
+                  fontWeight: 600,
+                  borderColor: 'custom.border',
+                  color: 'text.primary',
+                  '&:hover': { borderColor: 'text.primary', backgroundColor: 'action.hover' },
+                }}
+                id="detail-favorite-btn"
+              >
+                {favorite ? 'Remove from Favorites' : 'Add to Favorites'}
+              </Button>
+            </Box>
           </Box>
 
           {/* Info */}
@@ -180,57 +258,6 @@ const MovieDetails = () => {
             <Typography variant="body1" sx={{ mb: 3, maxWidth: 700 }}>
               {movie.overview || 'No overview available.'}
             </Typography>
-
-            {/* Director */}
-            {director && (
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Directed by {director.name}
-              </Typography>
-            )}
-
-            {/* Action buttons */}
-            <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap' }}>
-              {trailer && (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  startIcon={<PlayArrowOutlinedIcon />}
-                  onClick={() => setShowTrailer(!showTrailer)}
-                  id="detail-watch-trailer-btn"
-                >
-                  {showTrailer ? 'Hide Trailer' : 'Watch Trailer'}
-                </Button>
-              )}
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  if (!isLoggedIn) {
-                    navigate('/login');
-                    return;
-                  }
-                  if (favorite) {
-                    removeFavorite(movie.id);
-                  } else {
-                    addFavorite(movie);
-                  }
-                }}
-                startIcon={
-                  favorite ? (
-                    <FavoriteIcon sx={{ color: 'primary.main' }} />
-                  ) : (
-                    <FavoriteBorderOutlinedIcon />
-                  )
-                }
-                sx={{
-                  borderColor: 'custom.border',
-                  color: 'text.primary',
-                  '&:hover': { borderColor: 'text.primary' },
-                }}
-                id="detail-favorite-btn"
-              >
-                {favorite ? 'Remove from Favorites' : 'Add to Favorites'}
-              </Button>
-            </Box>
 
             {/* Lazy-loaded trailer */}
             {showTrailer && trailer && (

@@ -26,7 +26,7 @@ const MovieGrid = ({
           gridTemplateColumns: {
             xs: 'repeat(2, 1fr)',
             sm: 'repeat(4, 1fr)',
-            md: 'repeat(6, 1fr)',
+            md: 'repeat(5, 1fr)',
           },
           gap: '16px',
         }}
@@ -54,7 +54,7 @@ const MovieGrid = ({
           gridTemplateColumns: {
             xs: 'repeat(2, 1fr)',
             sm: 'repeat(4, 1fr)',
-            md: 'repeat(6, 1fr)',
+            md: 'repeat(5, 1fr)',
           },
           gap: '16px',
         }}
@@ -64,7 +64,7 @@ const MovieGrid = ({
         ))}
 
         {loadingMore &&
-          Array.from({ length: 6 }).map((_, i) => (
+          Array.from({ length: 5 }).map((_, i) => (
             <SkeletonCard key={`skeleton-more-${i}`} />
           ))}
       </Box>
@@ -91,9 +91,27 @@ const MovieGrid = ({
             aria-hidden="true"
           />
         ) : (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-            <Button variant="contained" color="primary" onClick={onLoadMore}>
-              Load More
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={onLoadMore}
+              sx={{
+                px: 5,
+                py: 1.2,
+                borderRadius: '8px',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                textTransform: 'none',
+                borderWidth: 2,
+                '&:hover': {
+                  borderWidth: 2,
+                  backgroundColor: 'primary.main',
+                  color: '#fff',
+                },
+              }}
+            >
+              Load More Movies
             </Button>
           </Box>
         )

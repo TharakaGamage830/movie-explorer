@@ -12,11 +12,21 @@ const ThemeToggle = () => {
     <Tooltip title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
       <IconButton
         onClick={toggleTheme}
-        color="inherit"
         aria-label={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
         id="theme-toggle-btn"
+        sx={{
+          color: mode === 'light' ? '#111111' : '#F5F5F5',
+          transition: 'color 150ms ease',
+          '&:hover': {
+            color: 'primary.main',
+          },
+        }}
       >
-        {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
+        {mode === 'dark' ? (
+          <LightModeOutlinedIcon sx={{ color: '#F5F5F5' }} />
+        ) : (
+          <DarkModeOutlinedIcon sx={{ color: '#111111' }} />
+        )}
       </IconButton>
     </Tooltip>
   );

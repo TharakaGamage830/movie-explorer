@@ -66,11 +66,15 @@ const LazyImage = ({
         onLoad={() => setLoaded(true)}
         onError={() => setError(true)}
         style={{
-          display: loaded ? 'block' : 'none',
+          position: 'absolute',
+          top: 0,
+          left: 0,
           width: '100%',
           height: '100%',
           objectFit: 'cover',
           borderRadius: `${borderRadius}px`,
+          opacity: loaded ? 1 : 0,
+          transition: 'opacity 300ms ease',
         }}
       />
     </Box>

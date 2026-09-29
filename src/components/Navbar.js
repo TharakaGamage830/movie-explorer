@@ -1,31 +1,21 @@
 import React from 'react';
-import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Tooltip from '@mui/material/Tooltip';
-import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
+import Collapse from '@mui/material/Collapse';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 
-const Navbar = () => {
+const Navbar = ({ showNavSearch, navSearchValue, onNavSearchChange }) => {
   const { isLoggedIn, username, logout } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
-
-  const handleSectionClick = (e, sectionId) => {
-    e.preventDefault();
-    if (location.pathname === '/') {
-      const element = document.getElementById(sectionId);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    } else {
-      navigate(`/#${sectionId}`);
-    }
-  };
 
   const navLinkStyle = (isActive = false) => ({
     color: isActive ? 'primary.main' : 'text.primary',
@@ -78,30 +68,60 @@ const Navbar = () => {
           <Link
             component={RouterLink}
             to="/"
-            sx={navLinkStyle(location.pathname === '/' && !location.hash)}
+            sx={navLinkStyle(location.pathname === '/')}
           >
             Home
           </Link>
 
           <Link
-            href="#trending-section"
-            onClick={(e) => handleSectionClick(e, 'trending-section')}
-            sx={navLinkStyle(location.hash === '#trending-section')}
+            component={RouterLink}
+            to="/trending"
+            sx={navLinkStyle(location.pathname === '/trending')}
           >
             Trending Movies
           </Link>
 
           <Link
-            href="#popular-section"
-            onClick={(e) => handleSectionClick(e, 'popular-section')}
-            sx={navLinkStyle(location.hash === '#popular-section')}
+            component={RouterLink}
+            to="/popular"
+            sx={navLinkStyle(location.pathname === '/popular')}
           >
             Popular
           </Link>
         </Box>
 
-        {/* Right Side: Favorites, Theme Toggle, User/Auth */}
+        {/* Right Side: Sticky Search, Favorites, Theme Toggle, User/Auth */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2.5 } }}>
+          {/* Compact search that appears when page search bar scrolls out */}
+          <Collapse in={showNavSearch} orientation="horizontal" timeout={250}>
+            <TextField
+              size="small"
+              variant="outlined"
+              placeholder="Search..."
+              value={navSearchValue || ''}
+              onChange={(e) => onNavSearchChange?.(e.target.value)}
+              aria-label="Search movies from navbar"
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchOutlinedIcon sx={{ fontSize: 18 }} color="action" />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+              sx={{
+                width: { xs: 140, sm: 200 },
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: 'background.paper',
+                  borderRadius: '6px',
+                  fontSize: '0.8125rem',
+                  height: 36,
+                },
+              }}
+            />
+          </Collapse>
+
           <Link
             component={RouterLink}
             to="/favorites"

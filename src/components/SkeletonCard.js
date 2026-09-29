@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 
 const SkeletonCard = () => (
-  <Box sx={{ width: '100%' }}>
+  <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
     <Skeleton
       variant="rounded"
       sx={{
@@ -18,7 +18,7 @@ const SkeletonCard = () => (
     />
     <Skeleton
       variant="text"
-      sx={{ width: '40%', height: 16 }}
+      sx={{ width: '40%', height: 16, mt: 0.25 }}
     />
   </Box>
 );
