@@ -13,23 +13,9 @@ const AppRoutes = () => {
   return (
     <Suspense fallback={<Loader />}>
       <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/movie/:id" element={<MovieDetails />} />
         <Route path="/login" element={<Login />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/movie/:id"
-          element={
-            <ProtectedRoute>
-              <MovieDetails />
-            </ProtectedRoute>
-          }
-        />
         <Route
           path="/favorites"
           element={

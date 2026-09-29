@@ -16,6 +16,7 @@ import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
 import LazyImage from '../components/LazyImage';
 import { getMovieDetails } from '../api/movieService';
+import { useAuth } from '../context/AuthContext';
 import { useMovieContext } from '../context/MovieContext';
 import {
   getImageUrl,
@@ -28,6 +29,7 @@ import { YOUTUBE_NOCOOKIE_BASE } from '../utils/constants';
 const MovieDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
   const { isFavorite, addFavorite, removeFavorite } = useMovieContext();
 
   const [movie, setMovie] = useState(null);
@@ -201,9 +203,17 @@ const MovieDetails = () => {
               )}
               <Button
                 variant="outlined"
-                onClick={() =>
-                  favorite ? removeFavorite(movie.id) : addFavorite(movie)
-                }
+                onClick={() => {
+                  if (!isLoggedIn) {
+                    navigate('/login');
+                    return;
+                  }
+                  if (favorite) {
+                    removeFavorite(movie.id);
+                  } else {
+                    addFavorite(movie);
+                  }
+                }}
                 startIcon={
                   favorite ? (
                     <FavoriteIcon sx={{ color: 'primary.main' }} />

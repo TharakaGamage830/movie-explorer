@@ -7,16 +7,22 @@ import StarOutlinedIcon from '@mui/icons-material/StarOutlined';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
 import LazyImage from './LazyImage';
+import { useAuth } from '../context/AuthContext';
 import { useMovieContext } from '../context/MovieContext';
 import { getImageUrl, getYear, formatRating } from '../utils/helpers';
 
 const MovieCard = React.memo(({ movie }) => {
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
   const { isFavorite, addFavorite, removeFavorite } = useMovieContext();
   const favorite = isFavorite(movie.id);
 
   const handleFavoriteClick = (e) => {
     e.stopPropagation();
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
     if (favorite) {
       removeFavorite(movie.id);
     } else {

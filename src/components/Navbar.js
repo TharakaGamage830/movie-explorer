@@ -52,26 +52,22 @@ const Navbar = () => {
             Movie Explorer
           </Typography>
 
-          {isLoggedIn && (
-            <>
-              <Button component={RouterLink} to="/" sx={linkStyle('/')}>
-                Home
-              </Button>
-              <Button
-                component={RouterLink}
-                to="/favorites"
-                sx={linkStyle('/favorites')}
-                startIcon={<FavoriteBorderOutlinedIcon sx={{ fontSize: 18 }} />}
-              >
-                Favorites
-              </Button>
-            </>
-          )}
+          <Button component={RouterLink} to="/" sx={linkStyle('/')}>
+            Home
+          </Button>
+          <Button
+            component={RouterLink}
+            to="/favorites"
+            sx={linkStyle('/favorites')}
+            startIcon={<FavoriteBorderOutlinedIcon sx={{ fontSize: 18 }} />}
+          >
+            Favorites
+          </Button>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <ThemeToggle />
-          {isLoggedIn && (
+          {isLoggedIn ? (
             <>
               <Typography
                 variant="body2"
@@ -96,6 +92,26 @@ const Navbar = () => {
                 </Button>
               </Tooltip>
             </>
+          ) : (
+            <Button
+              component={RouterLink}
+              to="/login"
+              variant="outlined"
+              size="small"
+              sx={{
+                borderColor: 'custom.border',
+                color: 'text.primary',
+                textTransform: 'none',
+                fontSize: '0.8125rem',
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  color: 'primary.main',
+                },
+              }}
+              id="nav-login-btn"
+            >
+              Sign In
+            </Button>
           )}
         </Box>
       </Toolbar>

@@ -1,16 +1,56 @@
-import React, { createContext, useContext, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useMemo, useCallback, useState, useEffect } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { STORAGE_KEYS } from '../utils/constants';
+import { useAuth } from './AuthContext';
 
 const MovieContext = createContext(undefined);
 
 export const MovieProvider = ({ children }) => {
-  const [favorites, setFavorites] = useLocalStorage(STORAGE_KEYS.favorites, []);
+  const { username } = useAuth();
+  const storageKey = username
+    ? `${STORAGE_KEYS.favorites}_${username.toLowerCase()}`
+    : STORAGE_KEYS.favorites;
+
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const [lastSearch, setLastSearch] = useLocalStorage(STORAGE_KEYS.lastSearch, '');
+
+  // Sync favorites when the active user switches
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      setFavorites(saved ? JSON.parse(saved) : []);
+    } catch {
+      setFavorites([]);
+    }
+  }, [storageKey]);
+
+  // Persist to local storage whenever favorites changes
+  const saveFavorites = useCallback(
+    (updater) => {
+      setFavorites((prev) => {
+        const next = typeof updater === 'function' ? updater(prev) : updater;
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(next));
+        } catch (e) {
+          console.warn('Failed to save favorites to localStorage', e);
+        }
+        return next;
+      });
+    },
+    [storageKey]
+  );
 
   const addFavorite = useCallback(
     (movie) => {
-      setFavorites((prev) => {
+      saveFavorites((prev) => {
         if (prev.some((m) => m.id === movie.id)) return prev;
         return [
           ...prev,
@@ -24,14 +64,14 @@ export const MovieProvider = ({ children }) => {
         ];
       });
     },
-    [setFavorites]
+    [saveFavorites]
   );
 
   const removeFavorite = useCallback(
     (movieId) => {
-      setFavorites((prev) => prev.filter((m) => m.id !== movieId));
+      saveFavorites((prev) => prev.filter((m) => m.id !== movieId));
     },
-    [setFavorites]
+    [saveFavorites]
   );
 
   const isFavorite = useCallback(
