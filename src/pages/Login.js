@@ -7,12 +7,14 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { MIN_PASSWORD_LENGTH } from '../utils/constants';
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
+  const { showToast } = useToast();
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -46,6 +48,7 @@ const Login = () => {
     // Real authentication requires a dedicated backend service.
     // In this client-side demo, we store only login state and username, never passwords.
     login(username.trim());
+    showToast(`Welcome back, ${username.trim()}!`, 'success');
 
     const from = location.state?.from?.pathname || '/';
     navigate(from, { replace: true });

@@ -9,24 +9,29 @@ import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlin
 import LazyImage from './LazyImage';
 import { useAuth } from '../context/AuthContext';
 import { useMovieContext } from '../context/MovieContext';
+import { useToast } from '../context/ToastContext';
 import { getImageUrl, getYear, formatRating } from '../utils/helpers';
 
 const MovieCard = React.memo(({ movie }) => {
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
   const { isFavorite, addFavorite, removeFavorite } = useMovieContext();
+  const { showToast } = useToast();
   const favorite = isFavorite(movie.id);
 
   const handleFavoriteClick = (e) => {
     e.stopPropagation();
     if (!isLoggedIn) {
+      showToast('Please sign in to add favorites.', 'warning');
       navigate('/login');
       return;
     }
     if (favorite) {
       removeFavorite(movie.id);
+      showToast(`Removed "${movie.title}" from favorites.`, 'info');
     } else {
       addFavorite(movie);
+      showToast(`Added "${movie.title}" to favorites!`, 'success');
     }
   };
 
