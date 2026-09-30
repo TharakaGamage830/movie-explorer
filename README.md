@@ -1,93 +1,158 @@
-# Movie Explorer
+# Movie Explorer - Discover Your Favorite Films
 
+Movie Explorer is a modern React web application that allows users to discover trending movies, search for titles, view detailed movie information and trailers, and manage a personal list of favorite films using data from The Movie Database (TMDb) API.
 
+## Features
 
-## Getting started
+- Trending Movies Hero and Row: Displays top weekly trending movies with high-resolution backdrop art, synopsis, and direct trailer access.
+- Debounced Movie Search: Live search powered by a 400ms debounce hook to minimize unnecessary API requests.
+- Genre Filtering: Quick genre chips to filter titles dynamically.
+- Infinite Scroll: Automatic pagination powered by IntersectionObserver as the user scrolls down the results grid.
+- Lazy Loaded Images and Routes: Smooth asset delivery with skeleton placeholders and route code splitting using React.lazy and Suspense.
+- Movie Details: Comprehensive film view including release year, runtime, ratings, genres, overview, cast list, and embedded YouTube trailers.
+- Favorites Management: Save and remove favorite movies with persistent storage in browser local storage, isolated per logged-in user.
+- Light and Dark Theme: Cinematic dark-first design aesthetic with support for light mode, persisted across sessions.
+- Demo Authentication: User sign-in interface with validation. Movie discovery, searching, details, and trailers are freely accessible to all visitors, while Favorites access and saving require logging in.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Tech Stack
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+- React 18 (Create React App, JavaScript)
+- Material-UI (MUI v5) and @mui/icons-material
+- React Router v6 for client-side navigation
+- Axios for HTTP requests and API response interceptors
+- React Context API for global state management
 
-## Add your files
-
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Folder Structure
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/tharakaashen830-group/movie-explorer.git
-git branch -M main
-git push -uf origin main
+movie-explorer/
+├── public/
+│   ├── index.html
+│   └── manifest.json
+├── src/
+│   ├── api/
+│   │   ├── movieService.js   # TMDb API service functions
+│   │   └── tmdbApi.js        # Axios instance and response interceptor
+│   ├── components/
+│   │   ├── EmptyState.js     # Fallback when no items are present
+│   │   ├── ErrorMessage.js   # Error display with retry button
+│   │   ├── Footer.js         # Footer with TMDb attribution notice
+│   │   ├── GenreChips.js     # Genre filter chips
+│   │   ├── LazyImage.js      # Image component with skeleton and fallback
+│   │   ├── Loader.js         # Full-page loading spinner for route transitions
+│   │   ├── MovieCard.js      # Individual movie poster card with rating and favorite toggle
+│   │   ├── MovieGrid.js      # Responsive grid with infinite scroll sentinel
+│   │   ├── MovieRow.js       # Horizontal scrollable movie carousel
+│   │   ├── Navbar.js         # Translucent top navigation bar
+│   │   ├── ProtectedRoute.js # Route guard redirecting unauthenticated users
+│   │   ├── SearchBar.js      # Search input with icon
+│   │   ├── SkeletonCard.js   # Placeholder skeleton matching card dimensions
+│   │   └── ThemeToggle.js    # Dark/light mode switcher
+│   ├── context/
+│   │   ├── AuthContext.js    # Demo authentication and session state
+│   │   ├── MovieContext.js   # Favorites list and last search query persistence
+│   │   └── ThemeContext.js   # Theme mode management
+│   ├── hooks/
+│   │   ├── useDebounce.js    # Debounce hook for search input
+│   │   ├── useInfiniteScroll.js # IntersectionObserver hook for pagination
+│   │   └── useLocalStorage.js   # Local storage synchronization hook
+│   ├── pages/
+│   │   ├── Favorites.js      # Saved movies list
+│   │   ├── Home.js           # Main landing page with hero, search, and grid
+│   │   ├── Login.js          # User sign-in page
+│   │   ├── MovieDetails.js   # Detailed film view with cast and trailer
+│   │   └── NotFound.js       # 404 error page
+│   ├── routes/
+│   │   ├── AppRoutes.js      # Central route definitions with lazy loading
+│   │   └── index.js          # Routes export
+│   ├── theme/
+│   │   └── theme.js          # MUI light and dark theme configurations
+│   ├── utils/
+│   │   ├── constants.js      # Application constants and configuration flags
+│   │   └── helpers.js        # Formatters, URL builders, and deduplication
+│   ├── App.js                # Root application component
+│   ├── index.css             # Global stylesheet
+│   └── index.js              # Application entry point
+├── .env.example              # Sample environment variables file
+├── .gitignore                # Git ignore rules
+├── package.json
+└── README.md
 ```
 
-## Integrate with your tools
+## Setup and Installation
 
-* [Set up project integrations](https://gitlab.com/tharakaashen830-group/movie-explorer/-/settings/integrations)
+### Prerequisites
 
-## Collaborate with your team
+- Node.js (v16 or higher recommended)
+- npm (v8 or higher)
+- A free TMDb API key from [The Movie Database](https://www.themoviedb.org/settings/api)
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+### 1. Clone or Open the Project Directory
 
-## Test and Deploy
+```bash
+cd "d:/Loons Lab Assigment/movie-explorer"
+```
 
-Use the built-in continuous integration in GitLab.
+### 2. Install Dependencies
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+```bash
+npm install
+```
 
-***
+### 3. Configure Environment Variables
 
-# Editing this README
+Copy `.env.example` to `.env`:
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+```bash
+cp .env.example .env
+```
 
-## Suggestions for a good README
+Open `.env` and set your TMDb API key:
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+```env
+REACT_APP_TMDB_API_KEY=your_actual_tmdb_api_key_here
+```
 
-## Name
-Choose a self-explaining name for your project.
+### 4. Run the Development Server
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+```bash
+npm start
+```
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+## API Usage
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+The app uses the official TMDb v3 API via Axios. The base URL is `https://api.themoviedb.org/3`.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Key endpoints integrated:
+- `GET /trending/movie/week`: Fetches trending movies for the current week.
+- `GET /search/movie`: Searches movies matching user queries with pagination.
+- `GET /movie/{id}?append_to_response=credits,videos`: Retrieves full movie details, credits, and YouTube video keys in a single request.
+- `GET /genre/movie/list`: Retrieves the official list of movie genres.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+Error responses (invalid key, rate limits, network failures) are intercepted in `src/api/tmdbApi.js` and converted into clear, actionable messages for the user.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+## Infinite Scroll Implementation
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+Infinite scroll is implemented using a custom React hook `useInfiniteScroll` based on the native browser `IntersectionObserver` API.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+- Sentinel Element: A zero-height sentinel element is placed at the bottom of the movie grid.
+- Viewport Intersection: When the sentinel enters the viewport (with a 200px prefetch margin), the hook triggers the next page fetch.
+- Duplicate Prevention: Incoming results are deduplicated against existing items before appending.
+- Request Cancellation: When a new search query is typed, pending requests are cancelled using `AbortController`.
+- Load More Alternative: A toggle is available in `src/utils/constants.js` (`INFINITE_SCROLL = true`). Setting this to `false` switches the UI to a manual "Load More" button without modifying component code.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+## Lazy Loading Strategy
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+1. Route-Level Code Splitting: All page components (`Home`, `MovieDetails`, `Favorites`, `Login`, `NotFound`) are loaded on demand with `React.lazy` and wrapped in a central `Suspense` boundary with a `Loader` fallback.
+2. Responsive Image Optimization: The `LazyImage` component leverages native browser `loading="lazy"` along with explicit aspect-ratio styling to eliminate cumulative layout shift (CLS). Skeleton placeholders are shown during loading, and a fallback box is displayed on load failure.
+3. YouTube Trailer Embeds: Embedded players use the privacy-enhanced `youtube-nocookie.com` domain and are only rendered when the user explicitly clicks "Watch Trailer".
 
-## License
-For open source projects, say how it is licensed.
+## Authentication Note
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+This application includes a front-end demo login flow. User credentials and login state are stored in browser local storage for demonstration purposes only. Production systems require a secure backend service with password hashing, session cookies, and token validation.
+
+## Attribution
+
+This product uses the TMDb API but is not endorsed or certified by TMDb.
