@@ -19,6 +19,7 @@ import MovieCard from '../components/MovieCard';
 import { getMovieDetails, getSimilarMovies } from '../api/movieService';
 import { useAuth } from '../context/AuthContext';
 import { useMovieContext } from '../context/MovieContext';
+import { useToast } from '../context/ToastContext';
 import {
   getImageUrl,
   getYear,
@@ -32,6 +33,7 @@ const MovieDetails = () => {
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
   const { isFavorite, addFavorite, removeFavorite } = useMovieContext();
+  const { showToast } = useToast();
 
   const [movie, setMovie] = useState(null);
   const [similarMovies, setSimilarMovies] = useState([]);
@@ -238,13 +240,16 @@ const MovieDetails = () => {
                 variant="outlined"
                 onClick={() => {
                   if (!isLoggedIn) {
+                    showToast('Please sign in to add favorites.', 'warning');
                     navigate('/login');
                     return;
                   }
                   if (favorite) {
                     removeFavorite(movie.id);
+                    showToast(`Removed "${movie.title}" from favorites.`, 'info');
                   } else {
                     addFavorite(movie);
+                    showToast(`Added "${movie.title}" to favorites!`, 'success');
                   }
                 }}
                 startIcon={

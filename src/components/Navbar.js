@@ -29,12 +29,19 @@ import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const Navbar = ({ showNavSearch, navSearchValue, onNavSearchChange }) => {
   const { isLoggedIn, username, logout } = useAuth();
+  const { showToast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    showToast('You have been logged out.', 'info');
+  };
 
   const handleDrawerToggle = () => {
     setMobileOpen((prev) => !prev);
@@ -177,7 +184,7 @@ const Navbar = ({ showNavSearch, navSearchValue, onNavSearchChange }) => {
                   <Tooltip title="Logout">
                     <Link
                       component="button"
-                      onClick={logout}
+                      onClick={handleLogout}
                       sx={{
                         ...navLinkStyle(false),
                         color: 'text.secondary',
@@ -283,7 +290,7 @@ const Navbar = ({ showNavSearch, navSearchValue, onNavSearchChange }) => {
               </Box>
               <ListItemButton
                 onClick={() => {
-                  logout();
+                  handleLogout();
                   setMobileOpen(false);
                 }}
                 sx={{
